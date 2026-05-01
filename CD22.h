@@ -59,7 +59,15 @@ typedef enum _serial_baud {
   CD22_SERIAL_BAUD_19200 = 19200,
   CD22_SERIAL_BAUD_38400 = 38400,
   CD22_SERIAL_BAUD_57600 = 57600,
-  CD22_SERIAL_BAUD_115200 = 115200
+  CD22_SERIAL_BAUD_115200 = 115200,
+  CD22_SERIAL_BAUD_230400 = 230400,
+  CD22_SERIAL_BAUD_312500 = 312500,
+  CD22_SERIAL_BAUD_468750 = 468750,
+  CD22_SERIAL_BAUD_500000 = 500000,
+  CD22_SERIAL_BAUD_625000 = 625000,
+  CD22_SERIAL_BAUD_833333 = 833333,
+  CD22_SERIAL_BAUD_937500 = 937500,
+  CD22_SERIAL_BAUD_1250000 = 1250000
 } CD22_SerialBaud;
 
 typedef enum _sensor_sampletime {
@@ -87,6 +95,8 @@ class CD22
 		  CD22_SerialBaud SerialBaud = CD22_SERIAL_BAUD_9600,
 		  uint8_t sensor_timeout_ms = 60
 		);
+		
+		CD22_SensorType CheckSensorType(void);
 
 		bool readData(uint8_t* type, uint8_t* data1, uint8_t* data2);
 
@@ -111,10 +121,13 @@ class CD22
 		bool executeZeroReset(void);
 
 		bool releaseZeroReset(void);
+		
+		CD22_SensorLeastCount least_count = CD22_SENSOR_LEAST_COUNT_1_MICRON;
+		
+		void flush(void);
 
 	private:
 		CD22_SensorType _sensor_type = CD22_SENSOR_15_485;
-		CD22_SensorLeastCount _least_count = CD22_SENSOR_LEAST_COUNT_1_MICRON;
 		uint8_t _sensor_timeout_ms;
 	  
 };

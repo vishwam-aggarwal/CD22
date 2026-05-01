@@ -15,39 +15,45 @@ CD22_SensorType CD22::begin(
       if (!bool(SerialType))
 	  {
 	    Serial1.begin(SerialBaud);
-		uint8_t type, data1, data2;
-		
-		writeData(CD22_READ_COMMAND, CD22_REG_MODEL_TYPE_U, CD22_REG_MODEL_TYPE_L);
-		if (readData(&type, &data1, &data2))
-		{
-			switch(~data1&data2)
-			{
-				case CD22_SENSOR_15_485:
-					_least_count = CD22_SENSOR_LEAST_COUNT_1_MICRON;
-					_sensor_type = CD22_SENSOR_15_485;
-					return CD22_SENSOR_15_485;
-					break;
-				case CD22_SENSOR_35_485:
-					_least_count = CD22_SENSOR_LEAST_COUNT_10_MICRON;
-					_sensor_type = CD22_SENSOR_35_485;
-					return CD22_SENSOR_35_485;
-					break;
-				case CD22_SENSOR_100_485:
-					_least_count = CD22_SENSOR_LEAST_COUNT_10_MICRON;
-					_sensor_type = CD22_SENSOR_100_485;
-					return CD22_SENSOR_100_485;
-					break;
-				default:
-					return CD22_SENSOR_NO_SENSOR;
-					break;
-			}
-		}
-		else
-			return CD22_SENSOR_NO_SENSOR;
+		return CheckSensorType();
 	  }
       else
         return CD22_SENSOR_NO_SENSOR;
     }
+	
+CD22_SensorType CD22::CheckSensorType(void)
+{
+	uint8_t type, data1, data2;
+		
+	writeData(CD22_READ_COMMAND, CD22_REG_MODEL_TYPE_U, CD22_REG_MODEL_TYPE_L);
+	if (readData(&type, &data1, &data2))
+	{
+		switch(~data1&data2)
+		{
+			case CD22_SENSOR_15_485:
+				least_count = CD22_SENSOR_LEAST_COUNT_1_MICRON;
+				_sensor_type = CD22_SENSOR_15_485;
+				return CD22_SENSOR_15_485;
+				break;
+			case CD22_SENSOR_35_485:
+				least_count = CD22_SENSOR_LEAST_COUNT_10_MICRON;
+				_sensor_type = CD22_SENSOR_35_485;
+				return CD22_SENSOR_35_485;
+				break;
+			case CD22_SENSOR_100_485:
+				least_count = CD22_SENSOR_LEAST_COUNT_10_MICRON;
+				_sensor_type = CD22_SENSOR_100_485;
+				return CD22_SENSOR_100_485;
+				break;
+			default:
+				return CD22_SENSOR_NO_SENSOR;
+				break;
+		}
+	}
+	else
+		return CD22_SENSOR_NO_SENSOR;
+	
+}
 
 bool CD22::readData(uint8_t* type, uint8_t* data1, uint8_t* data2)
 {
@@ -91,7 +97,7 @@ bool CD22::LaserON(void)
 {
   uint8_t type, data1, data2;
   writeData(CD22_TABLE_PARAM, CD22_REG_LASER_ON_U, CD22_REG_LASER_ON_L);
-  delay(10);
+  delay(20);
   if (readData(&type, &data1, &data2))
     return true;
   else
@@ -102,6 +108,7 @@ bool CD22::LaserOFF(void)
 {
   uint8_t type, data1, data2;
   writeData(CD22_TABLE_PARAM, CD22_REG_LASER_OFF_U, CD22_REG_LASER_OFF_L);
+  delay(20);
   if (readData(&type, &data1, &data2))
     return true;
   else
@@ -114,14 +121,14 @@ float CD22::readDistance(void)
   writeData(CD22_TABLE_PARAM, CD22_REG_MEAS_U, CD22_REG_MEAS_L);
   if (readData(&type, &data1, &data2))
   {
-    float dat = int16_t((data1<<8) | (data2))*float(_least_count/1000.0);
+    float dat = int16_t((data1<<8) | (data2))*float(least_count/1000.0);
     return dat;
   }
   else
     return 0;
 }
 
-int16_t readDistanceRaw(void)
+int16_t CD22::readDistanceRaw(void)
 {
   uint8_t type, data1, data2;
   writeData(CD22_TABLE_PARAM, CD22_REG_MEAS_U, CD22_REG_MEAS_L);
@@ -244,4 +251,10 @@ bool CD22::releaseZeroReset(void)
     return true;
   else
     return false;
+}
+
+void CD22::flush(void)
+{
+	Serial1.flush();
+	delay(10);
 }
